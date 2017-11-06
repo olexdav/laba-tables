@@ -11,6 +11,7 @@ namespace FileManager
     class FormulaTable
     {
         private List<List<string>> table;
+        private string path; // Path leading to the file where the table is stored
 
         public FormulaTable()
         {
@@ -25,8 +26,9 @@ namespace FileManager
         {
             return table.Count;
         }
-        public void LoadFromFile(string path)
+        public void LoadFromFile(string filepath)
         {
+            path = filepath;
             // Clear table
             Clear();
             // Read table from file to the list of lists
@@ -59,9 +61,19 @@ namespace FileManager
                 table[x].Clear();
             table.Clear();
         }
-        public void SaveToFile(string path)
+        public void SaveToFile()
         {
-
+            var csv = new StringBuilder();
+            for (int y = 0; y < GetHeight(); y++)
+                for (int x = 0; x < GetWidth(); x++)
+                {
+                    csv.Append(table[x][y]);
+                    if (x == GetWidth() - 1)
+                        csv.AppendLine();
+                    else
+                        csv.Append(';');
+                }
+            File.WriteAllText(path, csv.ToString());
         }
         public void LoadToDataGridView(DataGridView dgv)
         {
@@ -161,7 +173,9 @@ namespace FileManager
         }
         public void EditCell(int x, int y, string value)
         {
+            // TODO: Check if references in a cell are valid
 
+            table[x][y] = value;
         }
         public bool IsCellValid(int x, int y)
         {
