@@ -87,16 +87,16 @@ namespace FileManager
         }
         public void EvaluateToDataGridView(DataGridView dgv)
         {
-            try
-            {
-                for (int y = 0; y < GetHeight(); y++)
-                    for (int x = 0; x < GetWidth(); x++)
+            for (int y = 0; y < GetHeight(); y++)
+                for (int x = 0; x < GetWidth(); x++)
+                    try
+                    {
                         dgv[x, y].Value = EvaluateCell(x, y);
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show(e.Message);
-            }
+                    }
+                    catch (Exception e)
+                    {
+                        MessageBox.Show(e.Message);
+                    }
         }
         private string EvaluateCell(int x, int y)
         {
@@ -143,8 +143,21 @@ namespace FileManager
                 if (mainOperation == '/') return (a / b).ToString();
                 if (mainOperation == '*') return (a * b).ToString();
             }
-            // No operations present, the expression should be a number
+            // No operations present, the expression could be a reference
+            if (expr[0] == '$') // Reference symbol
+            {
+                int x, y;
+                expr = expr.Substring(1); // Trim '$'
+                Formulas.GetCellCoordinatesFromName(expr, out x, out y);
+                expr = GetCell(x, y);
+                return EvaluateExpression(expr); // Evaluate expression in the referenced cell
+            }
+            // Not a reference, it is a number
             return expr;
+        }
+        private string GetCell(int x, int y)
+        {
+            return table[x][y];
         }
         public void EditCell(int x, int y, string value)
         {
