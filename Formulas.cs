@@ -68,6 +68,7 @@ namespace FileManager
         }
         static public void GetCellCoordinatesFromName(string name, out int x, out int y) // All hail TOLYA
         {
+            if (name[0] == '$') name = name.Substring(1); // Crop '$'
             string letterPattern = @"\D+";
             string digitPattern = @"\d+";
             Regex regex = new Regex(letterPattern); // Match column name

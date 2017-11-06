@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
+using System.Text.RegularExpressions;
 
 namespace FileManager
 {
@@ -122,6 +123,8 @@ namespace FileManager
         private string EvaluateExpression(string expr)
         {
             if (expr.Length == 0) return expr;
+            // Crop '='
+            if (expr[0] == '=') expr = expr.Substring(1);
             // Remove brackets that completely enclose the expression
             expr = Formulas.RemoveOuterBrackets(expr);
             // Break expression into basic operations (+,-,*,/)
@@ -167,22 +170,56 @@ namespace FileManager
             // Not a reference, it is a number
             return expr;
         }
-        private string GetCell(int x, int y)
+        public string GetCell(int x, int y)
         {
             return table[x][y];
         }
-        public void EditCell(int x, int y, string value)
+        public bool EditCell(int x, int y, string value)
         {
-            // TODO: Check if references in a cell are valid
-
+            string oldValue = table[x][y];
             table[x][y] = value;
+            if (!IsCellValid(x, y)) // Check if references in a cell are valid
+            {
+                table[x][y] = oldValue;
+                MessageBox.Show("Invalid reference");
+                return false;
+            }
+            return true;
+        }
+        private bool CheckAdress(int homeX, int homeY, int currX, int currY) // Ave YARIK
+            // Check recursively whether the cell (homeX, homeY) has any invalid references
+        {
+            string cell = GetCell(currX, currY);
+            string pattern = @"\$[A-Z]+[0-9]+";
+            Regex regex = new Regex(pattern);
+            MatchCollection matches = regex.Matches(cell);
+            foreach (Match match in matches)
+            {
+                int referenceX = 0;
+                int referenceY = 0;
+                string reference = match.Value.ToString();
+                Formulas.GetCellCoordinatesFromName(reference, out referenceX, out referenceY);
+                if (referenceX < 0 || referenceY < 0 ||
+                    referenceX >= GetWidth() || referenceY >= GetHeight())
+                    return false; // Reference out of table bounds
+                if (referenceX == homeX && referenceY == homeY)
+                    return false; // Cycle found
+                if (!CheckAdress(homeX, homeY, referenceX, referenceY))
+                    return false; // Cycle found somewhere deeper in the recursion tree
+            }
+            return true;
         }
         public bool IsCellValid(int x, int y)
+            // Check whether the cell (x, y) has any invalid references
         {
-            return true;
+            return CheckAdress(x, y, x, y);
         }
         public bool IsTableValid()
         {
+            for (int y = 0; y < GetHeight(); y++)
+                for (int x = 0; x < GetWidth(); x++)
+                    if (!IsCellValid(x, y))
+                        return false;
             return true;
         }
         public void AddRow(DataGridView dgv)

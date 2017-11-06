@@ -67,7 +67,9 @@ namespace FileManager
         {
             int x = e.ColumnIndex;
             int y = e.RowIndex;
-            table.EditCell(x, y, dataGridView[x, y].Value.ToString());
+            bool success = table.EditCell(x, y, dataGridView[x, y].Value.ToString());
+            if (!success) // Cancel editing
+                dataGridView[x, y].Value = table.GetCell(x, y);
         }
 
         private void TableEditorForm_FormClosing(object sender, FormClosingEventArgs e)
