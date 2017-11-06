@@ -59,5 +59,27 @@ namespace FileManager
         {
             table.EvaluateToDataGridView(dataGridView);
         }
+        private void saveToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            table.SaveToFile();
+        }
+        private void dataGridView_CellEndEdit(object sender, DataGridViewCellEventArgs e)
+        {
+            int x = e.ColumnIndex;
+            int y = e.RowIndex;
+            table.EditCell(x, y, dataGridView[x, y].Value.ToString());
+        }
+
+        private void TableEditorForm_FormClosing(object sender, FormClosingEventArgs e)
+        { // Send a confirmation before closing the editor
+            if (!this.IsDisposed)
+            {
+                var result = MessageBox.Show("Are you sure you want to close the editor?\nThe file may not be saved!",
+                                         "Close editor",
+                                         MessageBoxButtons.YesNo,
+                                         MessageBoxIcon.Question);
+                e.Cancel = (result == DialogResult.No);
+            }
+        }
     }
 }
