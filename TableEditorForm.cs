@@ -14,11 +14,13 @@ namespace FileManager
     public partial class TableEditorForm : Form
     {
         private FormulaTable table;
+        bool evaluationMode; // Mode where each expression is evaluated
 
         public TableEditorForm()
         {
             InitializeComponent();
             table = new FormulaTable();
+            evaluationMode = false;
         }
         public TableEditorForm(string path)
         {
@@ -54,10 +56,12 @@ namespace FileManager
         private void rawTableButton_Click(object sender, EventArgs e)
         {
             table.LoadToDataGridView(dataGridView);
+            evaluationMode = false;
         }
         private void evaluateButton_Click(object sender, EventArgs e)
         {
             table.EvaluateToDataGridView(dataGridView);
+            evaluationMode = true;
         }
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -70,6 +74,9 @@ namespace FileManager
             bool success = table.EditCell(x, y, dataGridView[x, y].Value.ToString());
             if (!success) // Cancel editing
                 dataGridView[x, y].Value = table.GetCell(x, y);
+
+            if (success && evaluationMode) // Reevaluate cells
+                table.EvaluateToDataGridView(dataGridView);
         }
 
         private void TableEditorForm_FormClosing(object sender, FormClosingEventArgs e)

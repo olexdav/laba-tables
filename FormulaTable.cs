@@ -19,6 +19,17 @@ namespace FileManager
             table = new List<List<string>>();
             table.Add(new List<string>()); // Add initial column
         }
+        public FormulaTable(int width, int height)
+        {
+            if (height < 0 || width < 1)
+                throw new Exception("Invalid arguments in table constructor");
+            table = new List<List<string>>();
+            List<string> column = new List<string>();
+            for (int y = 0; y < height; y++)
+                column.Add("");
+            for (int x = 0; x < width; x++)
+                table.Add(column);
+        }
         public int GetHeight()
         {
             return table[0].Count;
@@ -75,6 +86,11 @@ namespace FileManager
                         csv.Append(';');
                 }
             File.WriteAllText(path, csv.ToString());
+        }
+        public void SaveToFile(string filePath)
+        {
+            path = filePath;
+            SaveToFile();
         }
         public void LoadToDataGridView(DataGridView dgv)
         {
