@@ -28,7 +28,7 @@ namespace FileManager
             for (int y = 0; y < height; y++)
                 column.Add("");
             for (int x = 0; x < width; x++)
-                table.Add(column);
+                table.Add(new List<string>(column));
         }
         public int GetHeight()
         {
@@ -238,7 +238,8 @@ namespace FileManager
                         return false;
             return true;
         }
-        public void AddRow(DataGridView dgv)
+        private void AppendRow(DataGridView dgv)
+            // Add row to the bottom of the table
         {
             for (int i = 0; i < GetWidth(); i++) // Add to table
                 table[i].Add("");
@@ -246,7 +247,35 @@ namespace FileManager
             string rowName = GetHeight().ToString();
             dgv.Rows[GetHeight() - 1].HeaderCell.Value = rowName;
         }
-        public void AddColumn(DataGridView dgv)
+        private void InsertRow(DataGridView dgv, int rowIndex)
+            // Insert a new row above a row with a particular index
+        {
+            AppendRow(dgv); // Add row to the bottom
+            for (int x = 0; x < GetWidth(); x++) // Shift the table down one row
+                for (int y = GetHeight()-1; y > rowIndex; y--)
+                {
+                    string value = GetCell(x, y - 1);
+                    EditCell(x, y, value);
+                }
+            for (int x = 0; x < GetWidth(); x++) // Erase contents of the new row
+                EditCell(x, rowIndex, "");
+            LoadToDataGridView(dgv); // Display changes
+        }
+        public void AddRow(DataGridView dgv)
+            // Add row above the selected cell or at the bottom of the table
+        {
+            if (dgv.SelectedCells.Count > 0) // Insert row before the selected cell
+            {
+                int y = dgv.SelectedCells[0].RowIndex;
+                InsertRow(dgv, y);
+            }
+            else
+            { // Append row to the end of the table
+                AppendRow(dgv);
+            }
+        }
+        public void AppendColumn(DataGridView dgv)
+            // Add column to the right of the table
         {
             string columnName = IntToColumn(GetWidth() - 1); // Add to table
             List<string> newColumn = new List<string>();
@@ -254,6 +283,33 @@ namespace FileManager
                 newColumn.Add("");
             table.Add(newColumn);
             dgv.Columns.Add(columnName, columnName);  // Add to grid view
+        }
+        public void InsertColumn(DataGridView dgv, int columnIndex)
+            // Insert a new column to the left of the row with a particular index
+        {
+            AppendColumn(dgv); // Add column to the right
+            for (int x = GetWidth()-1; x > columnIndex; x--) // Shift the table one column to the right
+                for (int y = 0; y < GetHeight(); y++)
+                {
+                    string value = GetCell(x - 1, y);
+                    EditCell(x, y, value);
+                }
+            for (int y = 0; y < GetHeight(); y++) // Erase contents of the new column
+                EditCell(columnIndex, y, "");
+            LoadToDataGridView(dgv); // Display changes
+        }
+        public void AddColumn(DataGridView dgv)
+            // Add a column to the left of the selected cell or at the bottom of hte table
+        {
+            if (dgv.SelectedCells.Count > 0) // Insert column to the left of the selected cell
+            {
+                int x = dgv.SelectedCells[0].ColumnIndex;
+                InsertColumn(dgv, x);
+            }
+            else
+            { // Append row to the end of the table
+                AppendColumn(dgv);
+            }
         }
         public void RemoveLastRow(DataGridView dgv)
         {

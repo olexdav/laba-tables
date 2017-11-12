@@ -90,5 +90,10 @@ namespace FileManager
                 e.Cancel = (result == DialogResult.No);
             }
         }
+
+        private void TableEditorForm_Click(object sender, EventArgs e)
+        {
+            dataGridView.ClearSelection();
+        }
     }
 }
