@@ -12,7 +12,9 @@ namespace FileManager
         static public int FirstMainOperation(string expr, char operation)
             // Return the index of the main operation in the expression, or -1 if there is none
         {
-            for (int i = 0; i < expr.Length; i++)
+            // Main operation (MO) can not be located on the edge of the expression
+            // E.g. "3-2" has a binary '-', which is a MO, "-2" has an unary '-', which is not a MO
+            for (int i = 1; i < expr.Length-1; i++) 
             {
                 if (expr[i] == operation &&
                     expr[i - 1] != operation &&
