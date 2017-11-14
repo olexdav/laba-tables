@@ -14,7 +14,7 @@ namespace FileManager
         {
             // Main operation (MO) can not be located on the edge of the expression
             // E.g. "3-2" has a binary '-', which is a MO, "-2" has an unary '-', which is not a MO
-            for (int i = 1; i < expr.Length-1; i++) 
+            for (int i = 1; i < expr.Length - 1; i++) 
             {
                 if (expr[i] == operation &&
                     expr[i - 1] != operation &&
@@ -36,6 +36,68 @@ namespace FileManager
                 }
             }
             return -1;
+        }
+        static public int FirstIncDecOperation(string expr, char operation)
+            // Return the index of the main inc/dec operation in the expression, or -1 if there is none
+        {
+            for (int i = 1; i < expr.Length - 1; i++)
+            {
+                if (expr[i] == operation &&
+                    expr[i + 1] == operation)
+                {
+                    int BracketCountL = 0;
+                    int BracketCountR = 0;
+                    for (int j = i+1; j < expr.Length; j++)
+                    {
+                        if (expr[j] == ')') BracketCountR++;
+                        if (expr[j] == '(') BracketCountR--;
+                    }
+                    for (int j = i; j >= 0; j--)
+                    {
+                        if (expr[j] == ')') BracketCountL++;
+                        if (expr[j] == '(') BracketCountL--;
+                    }
+                    if (BracketCountL == 0 && BracketCountR == 0) return i;
+                }
+            }
+            return -1;
+        }
+        static public string[] FindFunctionArguments(string expr, string func)
+            // Returns a string containing a function's arguments (only nmin and nmax are supported)
+            // E.g. "=nmin(2,$B2,5)" returns "2","$B2","5"
+        {
+            for (int i = 0; i < expr.Length - 4; i++)
+            {
+                if (expr[i] == func[0] &&
+                    expr[i + 1] == func[1] &&
+                    expr[i + 2] == func[2] &&
+                    expr[i + 3] == func[3] &&
+                    expr[i + 4] == '(')
+                {
+                    int brackets = 1; // Find closing bracket
+                    int endIndex = i + 5;
+                    for (; endIndex < expr.Length; endIndex++)
+                    {
+                        if (expr[endIndex] == ')')
+                        {
+                            brackets--;
+                            if (brackets == 0)
+                                break; // Closing bracket found
+                        }
+                        else if (expr[endIndex] == '(')
+                            brackets++;
+                    }
+                    if (brackets == 0) // Found closed function
+                    {
+                        int startIndex = i + 4;
+                        StringBuilder arguments = new StringBuilder("");
+                        for (int j = startIndex + 1; j < endIndex; j++)
+                            arguments.Append(expr[j]);
+                        return arguments.ToString().Split(',');
+                    }
+                }
+            }
+            return null;
         }
         static public string RemoveOuterBrackets(string expr)
             // Remove outer brackets from the expression if they are meaningless (e.g. "(2+2)")

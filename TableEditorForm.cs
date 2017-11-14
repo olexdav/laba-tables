@@ -69,14 +69,25 @@ namespace FileManager
         }
         private void dataGridView_CellEndEdit(object sender, DataGridViewCellEventArgs e)
         {
-            int x = e.ColumnIndex;
-            int y = e.RowIndex;
-            bool success = table.EditCell(x, y, dataGridView[x, y].Value.ToString());
-            if (!success) // Cancel editing
-                dataGridView[x, y].Value = table.GetCell(x, y);
+            try
+            {
+                int x = e.ColumnIndex;
+                int y = e.RowIndex;
+                var val = dataGridView[x, y].Value;
+                string newText;
+                if (val == null) newText = "";
+                else newText = val.ToString();
+                bool success = table.EditCell(x, y, newText);
+                if (!success) // Cancel editing
+                    dataGridView[x, y].Value = table.GetCell(x, y);
 
-            if (success && evaluationMode) // Reevaluate cells
-                table.EvaluateToDataGridView(dataGridView);
+                if (success && evaluationMode) // Reevaluate cells
+                    table.EvaluateToDataGridView(dataGridView);
+            }
+            catch (Exception exc)
+            {
+                MessageBox.Show(exc.Message);
+            }
         }
 
         private void TableEditorForm_FormClosing(object sender, FormClosingEventArgs e)

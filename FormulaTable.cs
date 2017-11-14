@@ -136,17 +136,17 @@ namespace FileManager
                 return EvaluateExpression(str.Substring(1));
             else return str;
         }
-        private string EvaluateExpression(string expr)
+        private string EvaluateExpression(string expr) // Pristine BYDLOCODE
         {
             if (expr.Length == 0) return expr;
             // Crop '='
             if (expr[0] == '=') expr = expr.Substring(1);
             // Remove brackets that completely enclose the expression
             expr = Formulas.RemoveOuterBrackets(expr);
-            // Break expression into basic operations (+,-,*,/)
+            // Break expression into basic operations (+,-,*,/,^)
             char mainOperation = ' ';
             int operationIndex = -1;
-            string operations = "+-/*";
+            string operations = "+-/*^";
             foreach (char operation in operations)
             {
                 operationIndex = Formulas.FirstMainOperation(expr, operation);
@@ -173,6 +173,51 @@ namespace FileManager
                 if (mainOperation == '-') return (a - b).ToString();
                 if (mainOperation == '/') return (a / b).ToString();
                 if (mainOperation == '*') return (a * b).ToString();
+                if (mainOperation == '^') return (Math.Pow(a, b)).ToString();
+            }
+            // Find increments/decrements
+            mainOperation = ' ';
+            operationIndex = -1;
+            operations = "+-";
+            foreach (char operation in operations)
+            {
+                operationIndex = Formulas.FirstIncDecOperation(expr, operation);
+                if (operationIndex != -1)
+                {
+                    mainOperation = operation;
+                    break;
+                }
+            }
+            if (operationIndex != -1)
+            {
+                StringBuilder leftExpression = new StringBuilder("");
+                for (int i = 0; i < operationIndex; i++)
+                    leftExpression.Append(expr[i]);
+
+                int a;
+                Int32.TryParse(EvaluateExpression(leftExpression.ToString()), out a);
+                if (mainOperation == '+') return (a + 1).ToString();
+                if (mainOperation == '-') return (a - 1).ToString();
+            }
+            // Find nmin/nmax
+            string[] functions = { "nmin", "nmax" };
+            foreach (string function in functions)
+            {
+                string[] arguments = Formulas.FindFunctionArguments(expr, function);
+                if (arguments != null)
+                {
+                    List<int> values = new List<int>();
+                    int val;
+                    foreach (string argument in arguments) // Evaluate all arguments
+                    {
+                        Int32.TryParse(EvaluateExpression(argument.ToString()), out val);
+                        values.Add(val);
+                    }
+                    if (function == "nmin")
+                        return values.Min().ToString();
+                    else if (function == "nmax")
+                        return values.Max().ToString();
+                }
             }
             // No operations present, the expression could be a reference
             if (expr[0] == '$') // Reference symbol
